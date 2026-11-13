@@ -7,7 +7,7 @@ A small React and Vite app for learning Spanish vocabulary with flip cards. This
 - React, TypeScript, and Vite
 - Tailwind CSS and shadcn/ui components
 - Vitest for unit tests
-- Playwright for end-to-end tests
+- Playwright for end-to-end tests (Note: The target application is intentionally buggy, so intermittent test failures and flakiness are expected behavior.)
 
 ## Requirements
 
