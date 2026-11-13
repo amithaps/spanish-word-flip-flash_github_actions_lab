@@ -1,104 +1,107 @@
 # Spanish Word Flip Flash
 
-A small React + Vite app that helps you learn essential Spanish words with flip cards. Includes unit tests (Vitest), end-to-end tests (Playwright), and a Jenkins pipeline using Docker.
+A small React and Vite app for learning Spanish vocabulary with flip cards. This repository includes unit tests with Vitest and end-to-end tests with Playwright, making it a useful project for practicing GitHub Actions.
 
-## Tech Stack
-- Vite + React + TypeScript
-- Tailwind CSS + shadcn UI
-- Vitest (unit tests)
-- Playwright (E2E tests)
-- Jenkins (Docker agent)
+## Tech stack
+
+- React, TypeScript, and Vite
+- Tailwind CSS and shadcn/ui components
+- Vitest for unit tests
+- Playwright for end-to-end tests
 
 ## Requirements
-- Node.js 20+ (Node 22 recommended)
-- npm 9+
 
-## Getting Started
-1. Install dependencies:
-   ```bash
-   npm i
-   ```
-2. Start the dev server:
-   ```bash
-   npm run dev
-   ```
-   - Default dev URL: http://localhost:8080
+- Node.js 20 or later is recommended.
+- npm (included with Node.js)
 
+The project does not currently specify an exact Node.js or npm version in `package.json`.
 
-## Scripts
-- Dev server: `npm run dev`
-- Build: `npm run build`
-- Preview build: `npm run preview`
-- Lint: `npm run lint`
-- Unit tests (Vitest): `npm run test:unit`
-- E2E tests (Playwright):
-  - Headless CI run: `npm run test:e2e`
-  - Headed UI: `npm run test:e2e:ui`
-  - Update snapshots: `npm run test:e2e:update`
-  - Open last HTML report: `npm run test:e2e:report`
+## Getting started
 
-## End-to-End Testing (Playwright)
-Playwright is configured in `playwright.config.ts`.
-- Base URL: overridable via `E2E_BASE_URL` (defaults to `http://localhost:8080`).
-- Dev server auto-starts/stops if `E2E_BASE_URL` is the default.
-- Reports:
-  - JUnit: `reports-e2e/junit.xml`
-  - HTML: `reports-e2e/html`
-- On failure: trace, screenshot, and video are retained in the HTML report.
+Install dependencies:
 
-Common commands:
 ```bash
-# Run full e2e suite (all browsers) in headless CI mode
-npm run test:e2e
-
-# Only Chromium, headed (browser visible)
-E2E_BASE_URL=http://localhost:8080 \
-  npm run test:e2e -- --project=chromium --headed
-
-# Slow motion (set once via env)
-SLOW_MO=400 E2E_BASE_URL=http://localhost:8080 \
-  npm run test:e2e -- --project=chromium --headed
-
-# Open the last HTML report
-npm run test:e2e:report
+npm ci
 ```
 
-Data-test IDs are used throughout for stable selectors in E2E tests:
-- `data-testid="card"`, `data-testid="card-inner"`
-- `data-testid="prev-btn"`, `data-testid="next-btn"`, `data-testid="random-btn"`
-- `data-testid="counter"`
+Start the development server:
 
-## Unit Testing (Vitest)
-- Config: `vitest.config.ts`
-- Example test: `src/lib/utils.test.ts` for the `cn` helper.
+```bash
+npm run dev
+```
 
-Run:
+Vite serves the app at [http://localhost:8080](http://localhost:8080).
+
+## Available scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | Start the development server |
+| `npm run build` | Create a production build in `dist/` |
+| `npm run preview` | Preview the production build locally |
+| `npm run lint` | Run ESLint |
+| `npm run test:unit` | Run unit tests with Vitest |
+| `npm run test:e2e` | Run Playwright end-to-end tests |
+| `npm run test:e2e:ui` | Open Playwright's interactive UI |
+| `npm run test:e2e:update` | Update Playwright snapshots |
+| `npm run test:e2e:report` | Open the most recent Playwright HTML report |
+
+## Tests
+
+### Unit tests
+
+Run the unit tests:
+
 ```bash
 npm run test:unit
 ```
 
-## Jenkins (Docker) Pipeline
-A `Jenkinsfile` is included with three stages using a Dockerized Node agent.
-- Agent image: `node:22-alpine`
-- Stages:
-  1. build: `npm ci` + `npm run build`
-  2. test: executes unit tests (Vitest)
-  3. deploy: mocked, prints a success message
+Vitest is configured in `vitest.config.ts`. The current example test is `src/lib/utils.test.ts`.
 
-Environment variables for Jenkins:
-- `E2E_BASE_URL=http://localhost:8080`
+### End-to-end tests
 
-Note: If you wish to run E2E in Jenkins, add steps to install Playwright browsers and run `npm run test:e2e -- --project=chromium`, then archive `reports-e2e/**` and publish JUnit from `reports-e2e/junit.xml`.
+Install the Playwright browsers before running the end-to-end tests:
 
-## Build
 ```bash
-npm run build
+npx playwright install
 ```
-Outputs to `dist/`.
 
-## Troubleshooting
-- Port 8080 in use: kill existing dev server, e.g. `npx kill-port 8080`.
-- Playwright slow-mo: set `SLOW_MO=400` (ms) env var.
+Run the tests:
+
+```bash
+npm run test:e2e
+```
+
+Playwright is configured in `playwright.config.ts` to run Chromium, Firefox, and WebKit projects. By default, it starts the Vite development server at `http://localhost:8080` for the tests. You can override the test target with `E2E_BASE_URL`.
+
+For example, to run only the Chromium tests in headed mode:
+
+```bash
+E2E_BASE_URL=http://localhost:8080 \
+  npm run test:e2e -- --project=chromium --headed
+```
+
+To slow the browser down for debugging:
+
+```bash
+SLOW_MO=400 E2E_BASE_URL=http://localhost:8080 \
+  npm run test:e2e -- --project=chromium --headed
+```
+
+Playwright writes its JUnit report to `reports-e2e/junit.xml` and its HTML report to `reports-e2e/html`. Traces, screenshots, and videos are configured to be retained on failure.
+
+## GitHub Actions learning
+
+This repository is suitable for practicing CI workflows. A good first workflow could run on pushes and pull requests and:
+
+1. Set up Node.js.
+2. Install dependencies with `npm ci`.
+3. Run `npm run lint`.
+4. Run `npm run test:unit`.
+5. Run `npm run build`.
+
+You can extend it later to install Playwright browsers and run `npm run test:e2e`.
 
 ## License
-MIT
+
+No license file is currently included in this repository. Add a `LICENSE` file if you want to specify the terms for using or distributing the project.
