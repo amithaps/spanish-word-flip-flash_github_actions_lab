@@ -1,0 +1,94 @@
+name: 03 - Gate Enforcement
+
+on:
+  pull_request:
+    branches: [uc03-protected]
+  merge_group:
+    types: [checks_requested]
+
+permissions:
+  contents: read
+
+jobs:
+  uc03-lint:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npm run lint
+
+  uc03-unit-tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npm run test:unit
+
+  uc03-build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npm run build
+
+  uc03-playwright:
+    needs: [uc03-lint, uc03-unit-tests, uc03-build]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npx playwright test --project=chromium
+
+      - name: Upload Playwright report
+        if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: uc03-playwright-report
+          path: reports-e2e/html/
+          retention-days: 7
+
+  uc03-final-gate:
+    needs: [uc03-lint, uc03-unit-tests, uc03-build, uc03-playwright]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Evaluate quality gates
+        env:
+          LINT: ${{ needs.uc03-lint.result }}
+          UNIT: ${{ needs.uc03-unit-tests.result }}
+          BUILD: ${{ needs.uc03-build.result }}
+          E2E: ${{ needs.uc03-playwright.result }}
+        run: |
+          echo "Lint: $LINT"
+          echo "Unit: $UNIT"
+          echo "Build: $BUILD"
+          echo "Playwright: $E2E"
+
+          if [[ "$LINT" != "success" ||
+                "$UNIT" != "success" ||
+                "$BUILD" != "success" ||
+                "$E2E" != "success" ]]; then
+            echo "::error::Quality gate failed"
+            exit 1
+          fi
+
+          echo "All quality gates passed"
