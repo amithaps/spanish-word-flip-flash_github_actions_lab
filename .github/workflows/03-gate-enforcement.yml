@@ -5,9 +5,14 @@ on:
     branches: [uc03-protected]
   merge_group:
     types: [checks_requested]
+    branches: [uc03-protected]
 
 permissions:
   contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
 
 jobs:
   uc03-lint:
@@ -63,7 +68,10 @@ jobs:
           name: uc03-playwright-report
           path: reports-e2e/html/
           retention-days: 7
-
+  # UC03: Consolidated quality gate for pull requests.
+  # This job runs after lint, unit tests, build, and Playwright.
+  # It fails if any required job failed or was skipped.
+  # GitHub branch protection will require this job to pass.
   uc03-final-gate:
     needs: [uc03-lint, uc03-unit-tests, uc03-build, uc03-playwright]
     if: ${{ !cancelled() }}
